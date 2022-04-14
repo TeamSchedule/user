@@ -4,7 +4,7 @@
 
 FROM openjdk:17-alpine
 WORKDIR /app
-COPY /build/libs/*.jar /spring-boot-application.jar
+COPY /build/libs/user-0.0.1-SNAPSHOT.jar /spring-boot-application.jar
 
 ARG POSTGRES_HOSTS
 ARG POSTGRES_DB
