@@ -1,10 +1,11 @@
-#FROM gradle:7.4.2-jdk17 as build
-#COPY --chown=gradle:gradle . ./
-#RUN gradle build -x test --no-daemon
+FROM gradle:7.4.2-jdk17 as build
+WORKDIR /app
+COPY --chown=gradle:gradle . ./
+RUN gradle build -x test --no-daemon
 
 FROM openjdk:17-alpine
 WORKDIR /app
-COPY /build/libs/user-0.0.1-SNAPSHOT.jar /spring-boot-application.jar
+COPY --from=build /app/build/libs/user-0.0.1-SNAPSHOT.jar /spring-boot-application.jar
 
 ARG POSTGRES_HOSTS
 ARG POSTGRES_DB
