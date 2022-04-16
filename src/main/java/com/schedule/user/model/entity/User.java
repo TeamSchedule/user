@@ -37,6 +37,9 @@ public class User {
     @Column(name = "email")
     private String email;
 
+    @Column(name = "confirmed")
+    private boolean confirmed;
+
     public User(
             String login,
             String password,
@@ -47,5 +50,7 @@ public class User {
         this.password = password;
         this.creationDate = creationDate;
         this.email = email;
+
+        this.confirmed = false;
     }
 }
