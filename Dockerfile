@@ -1,7 +1,7 @@
-FROM gradle:7.4.2-jdk17-alpine as build
+FROM dependency-cache:latest as build
 WORKDIR /app
-COPY --chown=gradle:gradle . ./
-RUN gradle build -i --stacktrace -x test --no-daemon
+COPY ./ ./
+RUN gradle clean build --no-daemon -i --stacktrace -x test
 
 FROM openjdk:17-alpine
 WORKDIR /app
