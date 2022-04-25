@@ -1,7 +1,7 @@
 package com.schedule.user.service.jwt;
 
-import io.jsonwebtoken.Claims;
+import com.schedule.user.model.UserClaims;
 
 public interface ExtractClaimsService {
-    Claims extract(String token);
+    UserClaims extract(String token);
 }
