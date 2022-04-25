@@ -1,18 +1,32 @@
 package com.schedule.user.service.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.schedule.user.model.UserClaims;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Map;
+
 @Service
+@RequiredArgsConstructor
 public class ExtractClaimsServiceImpl implements ExtractClaimsService {
+    private final ObjectMapper objectMapper;
+
     @Override
-    public Claims extract(String token) {
-        System.out.println(token);
-        return Jwts
-                .parser()
-                .setSigningKey("kXpBmV^_|BFq#c.-\"\"B:cd#k6-/EuVp]")
-                .parseClaimsJws(token)
-                .getBody();
+    @SneakyThrows
+    public UserClaims extract(String token) {
+        String json = new String(Base64.getDecoder().decode(token.split("\\.")[1]), StandardCharsets.UTF_8);
+        Map<String, String> map = objectMapper.readValue(json, new TypeReference<>() {
+        });
+        return new UserClaims(
+                Long.parseLong(map.get("iss")),
+                map.get("login")
+        );
+        //.parseClaimsJwt(token)
+        //.parseClaimsJws(token)
     }
 }
