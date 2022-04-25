@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/credentials")
+@RequestMapping("/user/credentials")
 public class CheckCredentialsController {
     private final CheckCredentialsService checkCredentialsService;
     private final GetUserByLoginService getUserByLoginService;
