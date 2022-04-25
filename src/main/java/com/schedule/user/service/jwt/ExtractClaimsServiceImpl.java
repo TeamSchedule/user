@@ -8,8 +8,10 @@ import org.springframework.stereotype.Service;
 public class ExtractClaimsServiceImpl implements ExtractClaimsService {
     @Override
     public Claims extract(String token) {
+        System.out.println(token);
         return Jwts
                 .parser()
+                .setSigningKey("kXpBmV^_|BFq#c.-\"\"B:cd#k6-/EuVp]")
                 .parseClaimsJws(token)
                 .getBody();
     }

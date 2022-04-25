@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -21,6 +22,7 @@ public class GetMeController {
     private final ExtractUserIdService extractUserIdService;
     private final GetUserByIdService getUserByIdService;
 
+    @GetMapping
     public ResponseEntity<GetUserResponse> get(HttpServletRequest request) {
         User user = getUserByIdService.get(
                 extractUserIdService.extract(
