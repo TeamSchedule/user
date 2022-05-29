@@ -102,8 +102,16 @@ public class UserController {
 
     @PostMapping("/credentials")
     public ResponseEntity<?> check(@RequestBody CheckCredentialsRequest checkCredentialsRequest) {
-        User user = getUserByLoginService.get(checkCredentialsRequest.getLogin());
         // TODO: validator
+        User user = getUserByLoginService.get(checkCredentialsRequest.getLogin());
+        if (!user.isConfirmed()) {
+            return ResponseEntity.badRequest().body(
+                    new DefaultErrorResponse(
+                            1,
+                            List.of("User is not confirmed")
+                    )
+            );
+        }
         boolean checkCredentials = checkCredentialsService.check(
                 user,
                 checkCredentialsRequest.getLogin(),
