@@ -41,7 +41,9 @@ public class UserController {
                                 .stream()
                                 .map(
                                         // TODO: service
-                                        user -> new UserDTO(user.getLogin(),
+                                        user -> new UserDTO(
+                                                user.getId(),
+                                                user.getLogin(),
                                                 user.getCreationDate(),
                                                 user.getEmail(),
                                                 user.isConfirmed()
@@ -65,6 +67,7 @@ public class UserController {
         return ResponseEntity.ok(
                 new GetUserResponse(
                         new UserDTO(
+                                user.getId(),
                                 user.getLogin(),
                                 user.getCreationDate(),
                                 user.getEmail(),
