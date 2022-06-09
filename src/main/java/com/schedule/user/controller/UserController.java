@@ -22,13 +22,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final CheckCredentialsService checkCredentialsService;
-    private final GetUserByLoginService getUserByLoginService;
-    private final GetUserByIdService getUserByIdService;
-    private final ConfirmUserService confirmUserService;
-    private final CreateUserService createUserService;
     private final ExtractTokenService extractTokenService;
     private final ExtractClaimsService extractClaimsService;
-    private final SearchUserService searchUserService;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<SearchUsersResponse> search(
@@ -36,8 +32,8 @@ public class UserController {
     ) {
         return ResponseEntity.ok().body(
                 new SearchUsersResponse(
-                        searchUserService
-                                .search(criteria)
+                        userService
+                                .searchByLoginContains(criteria)
                                 .stream()
                                 .map(
                                         // TODO: service
@@ -57,7 +53,7 @@ public class UserController {
     public ResponseEntity<GetUserResponse> get(
             HttpServletRequest request
     ) {
-        User user = getUserByIdService.get(
+        User user = userService.getById(
                 extractClaimsService.extract(
                         extractTokenService.extract(
                                 request
@@ -81,19 +77,24 @@ public class UserController {
     public ResponseEntity<CreateUserResponse> register(
             @RequestBody @Valid CreateUserRequest createUserRequest
     ) {
+        User user = userService.create(
+                createUserRequest.getLogin(),
+                createUserRequest.getPassword(),
+                createUserRequest.getEmail()
+        );
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(
                         new CreateUserResponse(
-                                createUserService.create(createUserRequest).getId()
+                                user.getId()
                         )
                 );
     }
 
     @PatchMapping("/{userId}")
     public ResponseEntity<?> confirm(@PathVariable Long userId) {
-        confirmUserService.confirm(
-                getUserByIdService.get(
+        userService.confirm(
+                userService.getById(
                         userId
                 )
         );
@@ -103,7 +104,7 @@ public class UserController {
     @PostMapping("/credentials")
     public ResponseEntity<?> check(@RequestBody CheckCredentialsRequest checkCredentialsRequest) {
         // TODO: validator
-        User user = getUserByLoginService.get(checkCredentialsRequest.getLogin());
+        User user = userService.getByLogin(checkCredentialsRequest.getLogin());
         if (!user.isConfirmed()) {
             return ResponseEntity.badRequest().body(
                     new DefaultErrorResponse(
