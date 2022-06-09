@@ -8,6 +8,5 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class DefaultErrorResponse {
-    private Integer errorCount;
     private List<String> errors;
 }

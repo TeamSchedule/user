@@ -86,7 +86,6 @@ public class UserController {
         if (!user.isConfirmed()) {
             return ResponseEntity.badRequest().body(
                     new DefaultErrorResponse(
-                            1,
                             List.of("User is not confirmed")
                     )
             );
@@ -100,7 +99,6 @@ public class UserController {
         if (!checkCredentials) {
             return ResponseEntity.badRequest().body(
                     new DefaultErrorResponse(
-                            1,
                             List.of("Incorrect login or password")
                     )
             );

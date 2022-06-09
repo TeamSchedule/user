@@ -19,7 +19,6 @@ public class ConstraintViolationErrorHandler {
                 .badRequest()
                 .body(
                         new DefaultErrorResponse(
-                                exception.getErrorCount(),
                                 exception
                                         .getBindingResult()
                                         .getAllErrors()
