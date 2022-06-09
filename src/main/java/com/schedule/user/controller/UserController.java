@@ -1,6 +1,5 @@
 package com.schedule.user.controller;
 
-import com.schedule.user.model.dto.UserDTO;
 import com.schedule.user.model.entity.User;
 import com.schedule.user.model.request.CheckCredentialsRequest;
 import com.schedule.user.model.request.CreateUserRequest;
@@ -22,6 +21,7 @@ import java.util.List;
 public class UserController {
     private final ExtractClaimsFromRequestService extractClaimsFromRequestService;
     private final CheckCredentialsService checkCredentialsService;
+    private final BuildUserDtoService buildUserDtoService;
     private final UserService userService;
 
     @GetMapping
@@ -33,15 +33,7 @@ public class UserController {
                         userService
                                 .searchByLoginContains(criteria)
                                 .stream()
-                                .map(
-                                        // TODO: service
-                                        user -> new UserDTO(
-                                                user.getId(),
-                                                user.getLogin(),
-                                                user.getCreationDate(),
-                                                user.getEmail(),
-                                                user.isConfirmed()
-                                        ))
+                                .map(buildUserDtoService::build)
                                 .toList()
                 )
         );
@@ -54,14 +46,7 @@ public class UserController {
         User user = extractClaimsFromRequestService.extractUser(request);
         return ResponseEntity.ok(
                 new GetUserResponse(
-                        // TODO: service
-                        new UserDTO(
-                                user.getId(),
-                                user.getLogin(),
-                                user.getCreationDate(),
-                                user.getEmail(),
-                                user.isConfirmed()
-                        )
+                        buildUserDtoService.build(user)
                 )
         );
     }
@@ -106,6 +91,7 @@ public class UserController {
                     )
             );
         }
+
         boolean checkCredentials = checkCredentialsService.check(
                 user,
                 checkCredentialsRequest.getLogin(),
@@ -119,6 +105,7 @@ public class UserController {
                     )
             );
         }
+
         return ResponseEntity.ok().body(
                 new CheckCredentialsResponse(
                         user.getId()
