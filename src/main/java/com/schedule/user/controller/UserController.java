@@ -6,8 +6,7 @@ import com.schedule.user.model.request.CheckCredentialsRequest;
 import com.schedule.user.model.request.CreateUserRequest;
 import com.schedule.user.model.response.*;
 import com.schedule.user.service.*;
-import com.schedule.user.service.jwt.ExtractClaimsService;
-import com.schedule.user.service.request.ExtractTokenService;
+import com.schedule.user.service.jwt.ExtractClaimsFromRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +20,8 @@ import java.util.List;
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
+    private final ExtractClaimsFromRequestService extractClaimsFromRequestService;
     private final CheckCredentialsService checkCredentialsService;
-    private final ExtractTokenService extractTokenService;
-    private final ExtractClaimsService extractClaimsService;
     private final UserService userService;
 
     @GetMapping
@@ -53,15 +51,10 @@ public class UserController {
     public ResponseEntity<GetUserResponse> get(
             HttpServletRequest request
     ) {
-        User user = userService.getById(
-                extractClaimsService.extract(
-                        extractTokenService.extract(
-                                request
-                        )
-                ).getId()
-        );
+        User user = extractClaimsFromRequestService.extractUser(request);
         return ResponseEntity.ok(
                 new GetUserResponse(
+                        // TODO: service
                         new UserDTO(
                                 user.getId(),
                                 user.getLogin(),

@@ -13,20 +13,20 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class ExtractClaimsServiceImpl implements ExtractClaimsService {
+class ExtractClaimsFromTokenServiceImpl implements ExtractClaimsFromTokenService {
     private final ObjectMapper objectMapper;
 
     @Override
     @SneakyThrows
     public UserClaims extract(String token) {
-        String json = new String(Base64.getDecoder().decode(token.split("\\.")[1]), StandardCharsets.UTF_8);
-        Map<String, String> map = objectMapper.readValue(json, new TypeReference<>() {
-        });
+        String json = new String(
+                Base64.getDecoder().decode(token.split("\\.")[1]),
+                StandardCharsets.UTF_8
+        );
+        Map<String, String> map = objectMapper.readValue(json, new TypeReference<>() {});
         return new UserClaims(
                 Long.parseLong(map.get("iss")),
                 map.get("login")
         );
-        //.parseClaimsJwt(token)
-        //.parseClaimsJws(token)
     }
 }

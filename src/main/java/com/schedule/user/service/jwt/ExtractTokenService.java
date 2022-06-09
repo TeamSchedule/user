@@ -1,7 +1,7 @@
-package com.schedule.user.service.request;
+package com.schedule.user.service.jwt;
 
 import javax.servlet.http.HttpServletRequest;
 
-public interface ExtractTokenService {
+interface ExtractTokenService {
     String extract(HttpServletRequest request);
 }

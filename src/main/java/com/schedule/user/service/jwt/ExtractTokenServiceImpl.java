@@ -1,4 +1,4 @@
-package com.schedule.user.service.request;
+package com.schedule.user.service.jwt;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 
 @Service
-public class ExtractTokenServiceImpl implements ExtractTokenService {
-    @Value("${app.jwt.tokenHeaderName}")
+class ExtractTokenServiceImpl implements ExtractTokenService {
+    @Value("${app.jwt.token.headerName}")
     private String tokenHeaderName;
-    @Value("${app.jwt.tokenStart}")
+    @Value("${app.jwt.token.prefix}")
     private String tokenStart;
 
     @Override

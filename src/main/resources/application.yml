@@ -16,5 +16,6 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 app:
   jwt:
-    tokenHeaderName: "Authorization"
-    tokenStart: "Bearer "
+    token:
+      headerName: "Authorization"
+      prefix: "Bearer "
