@@ -4,7 +4,9 @@ import com.schedule.user.model.entity.User;
 import com.schedule.user.model.request.CheckCredentialsRequest;
 import com.schedule.user.model.request.CreateUserRequest;
 import com.schedule.user.model.response.*;
-import com.schedule.user.service.*;
+import com.schedule.user.service.BuildUserDtoService;
+import com.schedule.user.service.CheckCredentialsService;
+import com.schedule.user.service.UserService;
 import com.schedule.user.service.jwt.ExtractClaimsFromRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -72,17 +74,18 @@ public class UserController {
     @PatchMapping("/{userId}")
     public ResponseEntity<?> confirm(@PathVariable Long userId) {
         userService.confirm(
-                userService.getById(
-                        userId
-                )
+                userId
         );
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/credentials")
-    public ResponseEntity<?> check(@RequestBody CheckCredentialsRequest checkCredentialsRequest) {
+    public ResponseEntity<?> check(
+            @RequestBody CheckCredentialsRequest checkCredentialsRequest,
+            HttpServletRequest request
+    ) {
         // TODO: validator
-        User user = userService.getByLogin(checkCredentialsRequest.getLogin());
+        User user = extractClaimsFromRequestService.extractUser(request);
         if (!user.isConfirmed()) {
             return ResponseEntity.badRequest().body(
                     new DefaultErrorResponse(

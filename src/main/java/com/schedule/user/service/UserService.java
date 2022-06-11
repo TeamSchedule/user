@@ -21,5 +21,5 @@ public interface UserService {
     );
 
     @Transactional
-    void confirm(User user);
+    void confirm(Long id);
 }
