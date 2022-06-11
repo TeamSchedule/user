@@ -2,9 +2,11 @@ package com.schedule.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.schedule.user.IntegrationTest;
+import com.schedule.user.model.dto.UserDTO;
 import com.schedule.user.model.entity.User;
 import com.schedule.user.model.request.CreateUserRequest;
 import com.schedule.user.model.response.CreateUserResponse;
+import com.schedule.user.model.response.GetUserResponse;
 import com.schedule.user.repository.UserRepository;
 import com.schedule.user.service.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -16,7 +18,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.temporal.ChronoUnit;
+
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -79,5 +84,34 @@ public class UserControllerTest extends IntegrationTest {
         Assertions.assertEquals(login, user.getLogin());
         Assertions.assertEquals(email, user.getEmail());
         Assertions.assertTrue(passwordEncoder.matches(password, user.getPassword()));
+    }
+
+    @Test
+    void getMeTest() throws Exception {
+        String login = "login";
+        String password = "password";
+        String email = "email@gmail.com";
+        User user = userService.create(login, password, email);
+
+        String response = mockMvc
+                .perform(
+                        get("/user/me")
+                                .header(tokenHeaderName, tokenValue)
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        GetUserResponse getUserResponse = objectMapper.readValue(response, GetUserResponse.class);
+        UserDTO responseUser = getUserResponse.getUser();
+
+        Assertions.assertEquals(user.getId(), responseUser.getId());
+        Assertions.assertEquals(user.getLogin(), responseUser.getLogin());
+        Assertions.assertEquals(user.getEmail(), responseUser.getEmail());
+        Assertions.assertEquals(
+                user.getCreationDate().truncatedTo(ChronoUnit.SECONDS),
+                responseUser.getCreationDate().truncatedTo(ChronoUnit.SECONDS)
+        );
     }
 }
