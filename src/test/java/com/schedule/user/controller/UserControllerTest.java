@@ -2,9 +2,14 @@ package com.schedule.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.schedule.user.IntegrationTest;
+import com.schedule.user.model.dto.UserDTO;
 import com.schedule.user.model.entity.User;
+import com.schedule.user.model.request.CheckCredentialsRequest;
 import com.schedule.user.model.request.CreateUserRequest;
+import com.schedule.user.model.response.CheckCredentialsResponse;
 import com.schedule.user.model.response.CreateUserResponse;
+import com.schedule.user.model.response.DefaultErrorResponse;
+import com.schedule.user.model.response.GetUserResponse;
 import com.schedule.user.repository.UserRepository;
 import com.schedule.user.service.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -16,7 +21,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.temporal.ChronoUnit;
+
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -79,5 +87,125 @@ public class UserControllerTest extends IntegrationTest {
         Assertions.assertEquals(login, user.getLogin());
         Assertions.assertEquals(email, user.getEmail());
         Assertions.assertTrue(passwordEncoder.matches(password, user.getPassword()));
+    }
+
+    @Test
+    void getMeTest() throws Exception {
+        String login = "login";
+        String password = "password";
+        String email = "email@gmail.com";
+        User user = userService.create(login, password, email);
+
+        String response = mockMvc
+                .perform(
+                        get("/user/me")
+                                .header(tokenHeaderName, tokenValue)
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        GetUserResponse getUserResponse = objectMapper.readValue(response, GetUserResponse.class);
+        UserDTO responseUser = getUserResponse.getUser();
+
+        Assertions.assertEquals(user.getId(), responseUser.getId());
+        Assertions.assertEquals(user.getLogin(), responseUser.getLogin());
+        Assertions.assertEquals(user.getEmail(), responseUser.getEmail());
+        Assertions.assertEquals(
+                user.getCreationDate().truncatedTo(ChronoUnit.SECONDS),
+                responseUser.getCreationDate().truncatedTo(ChronoUnit.SECONDS)
+        );
+    }
+
+    @Test
+    void checkCredentialsUserIsNotConfirmedTest() throws Exception {
+        String login = "login";
+        String password = "password";
+        String email = "email@gmail.com";
+        userService.create(login, password, email);
+
+        CheckCredentialsRequest checkCredentialsRequest = new CheckCredentialsRequest(
+                login, password
+        );
+        String requestBody = objectMapper.writeValueAsString(checkCredentialsRequest);
+
+        String response = mockMvc
+                .perform(
+                        post("/user/credentials")
+                                .header(tokenHeaderName, tokenValue)
+                                .contentType(APPLICATION_JSON)
+                                .content(requestBody)
+                )
+                .andExpect(status().isBadRequest())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        DefaultErrorResponse defaultErrorResponse = objectMapper.readValue(response, DefaultErrorResponse.class);
+
+        Assertions.assertEquals(1, defaultErrorResponse.getErrors().size());
+        Assertions.assertEquals("User is not confirmed", defaultErrorResponse.getErrors().get(0));
+    }
+
+    @Test
+    void checkCredentialsOkTest() throws Exception {
+        String login = "login";
+        String password = "password";
+        String email = "email@gmail.com";
+        User user = userService.create(login, password, email);
+        userService.confirm(user.getId());
+
+        CheckCredentialsRequest checkCredentialsRequest = new CheckCredentialsRequest(
+                login, password
+        );
+        String requestBody = objectMapper.writeValueAsString(checkCredentialsRequest);
+
+        String response = mockMvc
+                .perform(
+                        post("/user/credentials")
+                                .header(tokenHeaderName, tokenValue)
+                                .contentType(APPLICATION_JSON)
+                                .content(requestBody)
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        CheckCredentialsResponse checkCredentialsResponse = objectMapper.readValue(response, CheckCredentialsResponse.class);
+
+        Assertions.assertEquals(user.getId(), checkCredentialsResponse.getUserId());
+    }
+
+    @Test
+    void checkCredentialsWrongCredentialsTest() throws Exception {
+        String login = "login";
+        String password = "password";
+        String email = "email@gmail.com";
+        User user = userService.create(login, password, email);
+        userService.confirm(user.getId());
+
+        CheckCredentialsRequest checkCredentialsRequest = new CheckCredentialsRequest(
+                "wrong login", "wrong password"
+        );
+        String requestBody = objectMapper.writeValueAsString(checkCredentialsRequest);
+
+        String response = mockMvc
+                .perform(
+                        post("/user/credentials")
+                                .header(tokenHeaderName, tokenValue)
+                                .contentType(APPLICATION_JSON)
+                                .content(requestBody)
+                )
+                .andExpect(status().isBadRequest())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        DefaultErrorResponse defaultErrorResponse = objectMapper.readValue(response, DefaultErrorResponse.class);
+
+        Assertions.assertEquals(1, defaultErrorResponse.getErrors().size());
+        Assertions.assertEquals("Incorrect login or password", defaultErrorResponse.getErrors().get(0));
     }
 }

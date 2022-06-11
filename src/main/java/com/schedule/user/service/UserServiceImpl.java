@@ -54,7 +54,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void confirm(User user) {
+    public void confirm(Long id) {
+        User user = getById(id);
         user.setConfirmed(true);
     }
 }
