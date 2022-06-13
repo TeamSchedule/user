@@ -26,6 +26,21 @@ public class UserController {
     private final BuildUserDtoService buildUserDtoService;
     private final UserService userService;
 
+    @GetMapping("/{usersIds}")
+    public ResponseEntity<SearchUsersResponse> get(
+            @PathVariable List<Long> usersIds
+    ) {
+        return ResponseEntity.ok().body(
+                new SearchUsersResponse(
+                        userService
+                                .getByIds(usersIds)
+                                .stream()
+                                .map(buildUserDtoService::build)
+                                .toList()
+                )
+        );
+    }
+
     @GetMapping
     public ResponseEntity<SearchUsersResponse> search(
             @RequestParam String criteria
