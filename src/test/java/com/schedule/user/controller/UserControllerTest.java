@@ -24,8 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.temporal.ChronoUnit;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
@@ -207,5 +206,19 @@ public class UserControllerTest extends IntegrationTest {
 
         Assertions.assertEquals(1, defaultErrorResponse.getErrors().size());
         Assertions.assertEquals("Incorrect login or password", defaultErrorResponse.getErrors().get(0));
+    }
+
+    @Test
+    void confirmUserTest() throws Exception {
+        User user = userService.create("login", "password", "email");
+
+        mockMvc
+                .perform(
+                        patch("/user/" + user.getId())
+                )
+                .andExpect(status().isOk());
+
+        User confirmedUser = userRepository.findById(user.getId()).get();
+        Assertions.assertTrue(confirmedUser.isConfirmed());
     }
 }
