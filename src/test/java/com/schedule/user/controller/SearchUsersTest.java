@@ -87,4 +87,46 @@ public class SearchUsersTest extends IntegrationTest {
                 .toList();
         Assertions.assertEquals(expectedUsers, searchUsersResponse.getUsers());
     }
+
+    @Test
+    void searchSubstringTest() throws Exception {
+        String substr = "bcd";
+
+        String response = mockMvc
+                .perform(
+                        get("/user")
+                                .queryParam("criteria", substr)
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        SearchUsersResponse searchUsersResponse = objectMapper.readValue(response, SearchUsersResponse.class);
+
+        List<UserDTO> expectedUsers = users
+                .stream()
+                .filter(u -> u.getLogin().contains(substr))
+                .map(buildUserDtoService::build)
+                .toList();
+        Assertions.assertEquals(expectedUsers, searchUsersResponse.getUsers());
+    }
+
+    @Test
+    void searchSubstringNothingFoundTest() throws Exception {
+        String substr = "bcdz";
+
+        String response = mockMvc
+                .perform(
+                        get("/user")
+                                .queryParam("criteria", substr)
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        SearchUsersResponse searchUsersResponse = objectMapper.readValue(response, SearchUsersResponse.class);
+        Assertions.assertEquals(List.of(), searchUsersResponse.getUsers());
+    }
 }
