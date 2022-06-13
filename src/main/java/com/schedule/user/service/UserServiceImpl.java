@@ -27,6 +27,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getByIds(List<Long> ids) {
+        return userRepository.getAllByIdIn(ids);
+    }
+
+    @Override
     public User getByLogin(String login) {
         return userRepository.getByLogin(login);
     }

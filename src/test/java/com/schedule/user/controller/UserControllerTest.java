@@ -6,11 +6,9 @@ import com.schedule.user.model.dto.UserDTO;
 import com.schedule.user.model.entity.User;
 import com.schedule.user.model.request.CheckCredentialsRequest;
 import com.schedule.user.model.request.CreateUserRequest;
-import com.schedule.user.model.response.CheckCredentialsResponse;
-import com.schedule.user.model.response.CreateUserResponse;
-import com.schedule.user.model.response.DefaultErrorResponse;
-import com.schedule.user.model.response.GetUserResponse;
+import com.schedule.user.model.response.*;
 import com.schedule.user.repository.UserRepository;
+import com.schedule.user.service.BuildUserDtoService;
 import com.schedule.user.service.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -22,6 +20,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -34,6 +34,7 @@ public class UserControllerTest extends IntegrationTest {
     private final ObjectMapper objectMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final BuildUserDtoService buildUserDtoService;
     @Value("${app.jwt.token.headerName}")
     private String tokenHeaderName;
     @Value("${app.jwt.token.test}")
@@ -45,13 +46,15 @@ public class UserControllerTest extends IntegrationTest {
             UserService userService,
             ObjectMapper objectMapper,
             PasswordEncoder passwordEncoder,
-            UserRepository userRepository
+            UserRepository userRepository,
+            BuildUserDtoService buildUserDtoService
     ) {
         this.mockMvc = mockMvc;
         this.userService = userService;
         this.objectMapper = objectMapper;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
+        this.buildUserDtoService = buildUserDtoService;
     }
 
     @AfterEach
@@ -220,5 +223,35 @@ public class UserControllerTest extends IntegrationTest {
 
         User confirmedUser = userRepository.findById(user.getId()).get();
         Assertions.assertTrue(confirmedUser.isConfirmed());
+    }
+
+    @Test
+    void getUsersListByIdsTest() throws Exception {
+        String login = "login";
+        String password = "password";
+        String email = "email@gmail.com";
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            User user = userService.create(i + login, password, i + email);
+            user.setCreationDate(user.getCreationDate().truncatedTo(ChronoUnit.SECONDS));
+            users.add(user);
+        }
+
+        String ids = users.stream().map(User::getId).toList().toString();
+        ids = ids.substring(1, ids.length() - 1);
+
+        String response = mockMvc
+                .perform(
+                        get("/user/" + ids)
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        SearchUsersResponse searchUsersResponse = objectMapper.readValue(response, SearchUsersResponse.class);
+
+        List<UserDTO> expectedUsers = users.stream().map(buildUserDtoService::build).toList();
+        Assertions.assertEquals(expectedUsers, searchUsersResponse.getUsers());
     }
 }

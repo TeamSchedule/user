@@ -10,6 +10,8 @@ public interface UserService {
 
     List<User> searchByLoginContains(String login);
 
+    List<User> getByIds(List<Long> ids);
+
     User getByLogin(String login);
 
     User getById(Long id);
